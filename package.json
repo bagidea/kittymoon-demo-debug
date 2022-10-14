@@ -1,0 +1,34 @@
+{
+  "name": "game_mockup",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "export": "next build && next export"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.3.5",
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "anchor-link": "^3.5.1",
+    "anchor-link-browser-transport": "^3.5.1",
+    "axios": "^1.1.2",
+    "firebase-admin": "^11.1.0",
+    "firebase-functions": "^3.24.1",
+    "framer-motion": "^7.5.3",
+    "next": "^12.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.8.5",
+    "@types/react": "18.0.21",
+    "firebase-functions-test": "^2.4.0",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.5",
+    "typescript": "4.8.4"
+  }
+}
