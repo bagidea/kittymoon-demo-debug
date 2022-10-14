@@ -1271,6 +1271,7 @@ const Index = () => {
                         h="30px"
                         top="95px"
                         left="485px"
+                        color="white"
                         bgColor="green"
 
                         onClick={ sell_all_reward }
