@@ -16,7 +16,6 @@ import {
   ModalOverlay,
   ModalContent,
   ModalBody,
-  ModalCloseButton,
   ModalFooter
 } from "@chakra-ui/react"
 
@@ -50,7 +49,7 @@ const block_style = {
     border: "2px solid",
     borderColor: "white",
     rounded: "5px",
-    backdropFilter: "blur(5px)",
+    backdropFilter: "blur(2px)",
     cursor: "pointer"
 }
 
@@ -63,6 +62,13 @@ interface Asset {
     max_energy: number,
     rarity: string,
     type: string
+}
+
+interface Block {
+    status: string,
+    rarity: string,
+    current_time: number,
+    cooldown_hr: number
 }
 
 const Index = () => {
@@ -89,6 +95,33 @@ const Index = () => {
     const [watering_can_tools, setWateringCanTools] = useState<Array<Asset>>([])
     const [axe_tools, setAxeTools] = useState<Array<Asset>>([])
 
+    const [land_blocks, setLandBlocks] = useState<Array<Block>>([
+        {
+            status: "ready",
+            rarity: "",
+            current_time: 0,
+            cooldown_hr: 0
+        },
+        {
+            status: "ready",
+            rarity: "",
+            current_time: 0,
+            cooldown_hr: 0
+        },
+        {
+            status: "ready",
+            rarity: "",
+            current_time: 0,
+            cooldown_hr: 0
+        },
+        {
+            status: "ready",
+            rarity: "",
+            current_time: 0,
+            cooldown_hr: 0
+        }
+    ])
+
     const chainId: string        = "f16b1833c747c43682f4386fca9cbb327929334a762755ebec17f6f23c9b8a12"
     const nodeUrl: string        = "https://waxtestnet.greymass.com"
 
@@ -111,15 +144,22 @@ const Index = () => {
 
     const toast = useToast()
 
+    const claim_common: number    = 12
+    const claim_uncommon: number  = 13
+    const claim_rare: number      = 22
+    const claim_legendary: number = 28
+
+
     /////////////////////////////
     
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [temp_asset, setTempAsset] = useState<Asset>(null)
+    const [temp_seed, setTempSeed] = useState<string>("")
 
     /////////////////////////////
 
-    const [is_use_tool, setUseTool] = useState<boolean>(false)
-    const [select_blocks, setSelectBlocks] = useState<Array<number>>([])
+    const [is_use_tool, setUseToolAndSeed] = useState<boolean>(false)
+    const [select_blocks, setSelectBlocks] = useState<Array<boolean>>([false, false, false, false])
 
     const get_token_data = (session: LinkSession) => {
         axios({
@@ -211,6 +251,59 @@ const Index = () => {
                 setRewardUncommon(0)
                 setRewardRare(0)
                 setRewardLegendary(0)
+            }
+        })
+    }
+
+    const get_land_blocks = (session: LinkSession) => {
+        axios({
+            method: "post",
+            url: api_url+"/get_table_rows",
+            headers: {
+                "Content-Type": "text/plain"
+            },
+            data: {
+                json: true,
+                code: game_account,
+                table: "lands",
+                scope: game_account,
+                lower_bound: session.auth.actor.toString(),
+                limit: 1,
+                reverse: false,
+                show_payer: false
+            }
+        })
+        .then((v) => {
+            //console.log(v)
+            const data = v.data.rows.filter((v) => v.player_account == session.auth.actor.toString())
+
+            if(data.length > 0) {
+                console.log(data[0].lands[0].blocks)
+
+                const blocks = data[0].lands[0].blocks
+                const new_land_blocks: Array<Block> = [...land_blocks]
+
+                new_land_blocks[0].status       = blocks[0].status
+                new_land_blocks[0].rarity       = blocks[0].rarity
+                new_land_blocks[0].current_time = blocks[0].current_time
+                new_land_blocks[0].cooldown_hr  = blocks[0].cooldown_hr
+
+                new_land_blocks[1].status       = blocks[1].status
+                new_land_blocks[1].rarity       = blocks[1].rarity
+                new_land_blocks[1].current_time = blocks[1].current_time
+                new_land_blocks[1].cooldown_hr  = blocks[1].cooldown_hr
+
+                new_land_blocks[2].status       = blocks[2].status
+                new_land_blocks[2].rarity       = blocks[2].rarity
+                new_land_blocks[2].current_time = blocks[2].current_time
+                new_land_blocks[2].cooldown_hr  = blocks[2].cooldown_hr
+
+                new_land_blocks[3].status       = blocks[3].status
+                new_land_blocks[3].rarity       = blocks[3].rarity
+                new_land_blocks[3].current_time = blocks[3].current_time
+                new_land_blocks[3].cooldown_hr  = blocks[3].cooldown_hr
+            } else {
+                console.log("not found land default from account")
             }
         })
     }
@@ -342,7 +435,13 @@ const Index = () => {
                 }
 
                 if(!!temp_asset) {
-                    if(assets.filter((i) => i.asset_id == temp_asset.asset_id).length == 0) assets.push(temp_asset)
+                    if(
+                        assets.filter((i) => i.asset_id == temp_asset.asset_id).length == 0 &&
+                        hoe_tools.filter((i) => i.asset_id == temp_asset.asset_id).length == 0 &&
+                        watering_can_tools.filter((i) => i.asset_id == temp_asset.asset_id).length == 0 &&
+                        axe_tools.filter((i) => i.asset_id == temp_asset.asset_id).length == 0
+                    ) { assets.push(temp_asset) }
+
                     setTempAsset(null)
                 }
 
@@ -398,6 +497,7 @@ const Index = () => {
                     })
 
                     check_game_register(session)
+                    get_land_blocks(session)
                     get_token_data(session)
                     get_nft_data(session)
                 })
@@ -416,6 +516,84 @@ const Index = () => {
 
                 get_seeds_and_rewards(session)
             }
+        })
+    }
+
+    const buy_energy = (amount: string) => {
+        const action = {
+            account: token_account,
+            name: "transfer",
+            authorization: [session.auth],
+            data: {
+                from: session.auth.actor.toString(),
+                to: shop_account,
+                quantity: amount,
+                memo: "buy_energy"
+            }
+        }
+
+        session.transact({ action })
+        .then(({ transaction }) => {
+            console.log("Transaction broadcast! Id: "+transaction.id)
+
+            toast({
+                title: "Transaction broadcast! Id: "+transaction.id,
+                status: "success",
+                isClosable: true
+            })
+
+            check_game_register(session)
+            get_land_blocks(session)
+            get_token_data(session)
+            get_nft_data(session)
+        })
+        .catch((err) => {
+            console.log(err)
+
+            toast({
+                title: "Error",
+                status: "error",
+                isClosable: true
+            })
+        })
+    }
+
+    const buy_energy_tool = (asset_id: string, amount: string) => {
+        const action = {
+            account: token_account,
+            name: "transfer",
+            authorization: [session.auth],
+            data: {
+                from: session.auth.actor.toString(),
+                to: shop_account,
+                quantity: amount,
+                memo: "buy_energy_tool:"+asset_id
+            }
+        }
+
+        session.transact({ action })
+        .then(({ transaction }) => {
+            console.log("Transaction broadcast! Id: "+transaction.id)
+
+            toast({
+                title: "Transaction broadcast! Id: "+transaction.id,
+                status: "success",
+                isClosable: true
+            })
+
+            check_game_register(session)
+            get_land_blocks(session)
+            get_token_data(session)
+            get_nft_data(session)
+        })
+        .catch((err) => {
+            console.log(err)
+
+            toast({
+                title: "Error",
+                status: "error",
+                isClosable: true
+            })
         })
     }
 
@@ -443,6 +621,7 @@ const Index = () => {
             })
 
             check_game_register(session)
+            get_land_blocks(session)
             get_token_data(session)
             get_nft_data(session)
         })
@@ -481,6 +660,7 @@ const Index = () => {
             })
 
             check_game_register(session)
+            get_land_blocks(session)
             get_token_data(session)
             get_nft_data(session)
         })
@@ -502,7 +682,7 @@ const Index = () => {
             authorization: [session.auth],
             data: {
                 player_account: session.auth.actor.toString(),
-                asset_id: asset_id,
+                asset_id: asset_id
             }
         }
 
@@ -517,6 +697,7 @@ const Index = () => {
             })
 
             check_game_register(session)
+            get_land_blocks(session)
             get_token_data(session)
             get_nft_data(session)
         })
@@ -531,6 +712,128 @@ const Index = () => {
         })
     }
 
+    const use_tool_action = (asset_id: string, blocks: Array<number>, status_action: string) => {
+        const action = {
+            account: game_account,
+            name: status_action,
+            authorization: [session.auth],
+            data: {
+                player_account: session.auth.actor.toString(),
+                asset_id: asset_id,
+                land_num: 0,
+                blocks_index: blocks
+            }
+        }
+
+        session.transact({ action })
+        .then(({ transaction }) => {
+            console.log("Transaction broadcast! Id: "+transaction.id)
+
+            toast({
+                title: "Transaction broadcast! Id: "+transaction.id,
+                status: "success",
+                isClosable: true
+            })
+
+            check_game_register(session)
+            get_land_blocks(session)
+            get_token_data(session)
+            get_nft_data(session)
+            setTempAsset(null)
+        })
+        .catch((err) => {
+            console.log(err)
+
+            toast({
+                title: "Error",
+                status: "error",
+                isClosable: true
+            })
+        })
+    }
+
+    const use_seed_action = (rarity: string, blocks: Array<number>) => {
+        const action = {
+            account: game_account,
+            name: "puttheseed",
+            authorization: [session.auth],
+            data: {
+                player_account: session.auth.actor.toString(),
+                rarity: temp_seed,
+                land_num: 0,
+                blocks_index: blocks
+            }
+        }
+
+        session.transact({ action })
+        .then(({ transaction }) => {
+            console.log("Transaction broadcast! Id: "+transaction.id)
+
+            toast({
+                title: "Transaction broadcast! Id: "+transaction.id,
+                status: "success",
+                isClosable: true
+            })
+
+            check_game_register(session)
+            get_land_blocks(session)
+            get_token_data(session)
+            get_nft_data(session)
+            setTempAsset(null)
+        })
+        .catch((err) => {
+            console.log(err)
+
+            toast({
+                title: "Error",
+                status: "error",
+                isClosable: true
+            })
+        })
+
+    }
+
+    const sell_all_reward = () => {
+        const action = {
+            account: game_account,
+            name: "sellreward",
+            authorization: [session.auth],
+            data: {
+                player_account: session.auth.actor.toString(),
+                common: reward_common,
+                uncommon: reward_uncommon,
+                rare: reward_rare,
+                legendary: reward_legendary
+            }
+        }
+
+        session.transact({ action })
+        .then(({ transaction }) => {
+            console.log("Transaction broadcast! Id: "+transaction.id)
+
+            toast({
+                title: "Transaction broadcast! Id: "+transaction.id,
+                status: "success",
+                isClosable: true
+            })
+
+            check_game_register(session)
+            get_land_blocks(session)
+            get_token_data(session)
+            get_nft_data(session)
+            setTempAsset(null)
+        })
+        .catch((err) => {
+            console.log(err)
+
+            toast({
+                title: "Error",
+                status: "error",
+                isClosable: true
+            })
+        })
+
+    }
 
     useEffect(() => {
         const transport: AnchorLinkBrowserTransport = new AnchorLinkBrowserTransport()
@@ -552,6 +855,7 @@ const Index = () => {
                 console.log(session.auth.actor.toString(), "has logged in")
 
                 check_game_register(session)
+                get_land_blocks(session)
                 get_token_data(session)
                 get_nft_data(session)
 
@@ -571,6 +875,7 @@ const Index = () => {
             position="relative"
             w="100vw"
             h="100vh"
+            minW="1280px"
             alignItems="center"
             justifyContent="center"
             userSelect="none"
@@ -583,6 +888,7 @@ const Index = () => {
             >
                 <HStack
                     w="1280px"
+                    minW="1280px"
                     pt="20px"
                 >
                     <Flex
@@ -621,6 +927,7 @@ const Index = () => {
                                                 console.log(session.auth.actor.toString(), "has logged in")
 
                                                 check_game_register(session)
+                                                get_land_blocks(session)
                                                 get_token_data(session)
                                                 get_nft_data(session)
 
@@ -710,6 +1017,18 @@ const Index = () => {
                             textShadow="2px 2px white"
                         >{ token }</Text>
                     </VStack>
+
+                    <Button
+                        disabled={ (max_energy - energy) / 25 == 0 }
+                        position="absolute"
+                        h="30px"
+                        top="145px"
+                        left="200px"
+                        color="black"
+                        bgColor="yellow"
+
+                        onClick={ () => { buy_energy(((max_energy - energy) / 25)+".00000000 KITTEN") } }
+                    >{ "Buy energy "+((max_energy - energy) / 25)+" KITTEN" }</Button>
 
                     <HStack
                         position="absolute"
@@ -858,6 +1177,216 @@ const Index = () => {
                             </HStack>
                         </HStack>
                     </HStack>
+
+                    <HStack
+                        position="absolute"
+                        top="75px"
+                        left="780px"
+                    >
+                        <Button
+                            h="20px"
+                            color="white"
+                            bgColor="black"
+                            fontSize="12px"
+                            fontWeight="800"
+
+                            onClick={ () =>
+                                {
+                                    setUseToolAndSeed(true)
+                                    setTempSeed("common")
+                                    setTempAsset(null)
+                                    onClose()
+                                }
+                            }
+                        >USE (C)</Button>
+
+                        <Button
+                            h="20px"
+                            color="skyblue"
+                            bgColor="black"
+                            fontSize="12px"
+                            fontWeight="800"
+
+                            onClick={ () =>
+                                {
+                                    setUseToolAndSeed(true)
+                                    setTempSeed("uncommon")
+                                    setTempAsset(null)
+                                    onClose()
+                                }
+                            }
+                        >USE (U)</Button>
+
+                        <Button
+                            h="20px"
+                            color="violet"
+                            bgColor="black"
+                            fontSize="12px"
+                            fontWeight="800"
+
+                            onClick={ () =>
+                                {
+                                    setUseToolAndSeed(true)
+                                    setTempSeed("rare")
+                                    setTempAsset(null)
+                                    onClose()
+                                }
+                            }
+                        >USE (R)</Button>
+
+                        <Button
+                            h="20px"
+                            color="yellow"
+                            bgColor="black"
+                            fontSize="12px"
+                            fontWeight="800"
+
+                            onClick={ () =>
+                                {
+                                    setUseToolAndSeed(true)
+                                    setTempSeed("legendary")
+                                    setTempAsset(null)
+                                    onClose()
+                                }
+                            }
+                        >USE (L)</Button>
+                    </HStack>
+
+                    <Flex
+                        position="absolute"
+                        w="170px"
+                        h="25px"
+                        top="310px"
+                        left="485px"
+                        bgColor="black"
+                        roundedBottom="5px"
+                    />
+
+                    <Button
+                        disabled={ reward_common + reward_uncommon + reward_rare + reward_legendary == 0 }
+                        position="absolute"
+                        w="170px"
+                        h="30px"
+                        top="95px"
+                        left="485px"
+                        bgColor="green"
+
+                        onClick={ sell_all_reward }
+                    >Sell all reward</Button>
+
+                    <VStack
+                        position="absolute"
+                        w="170px"
+                        h="180px"
+                        px="10px"
+                        py="10px"
+                        top="130px"
+                        left="485px"
+                        border="2px solid"
+                        borderColor="white"
+                        bgColor="rgba(0, 0, 0, 0.5)"
+                        rounded="5px"
+                        spacing="0px"
+                    >
+                        <HStack
+                            w="full"
+                        >
+                            <Image
+                                src="/tools_and_seeds/reward_common.png"
+                                w="40px"
+                                h="40px"
+                            />
+                            
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                textShadow="2px 2px black"
+                                color="white"
+                            >{ reward_common * claim_common }</Text>
+
+                            <Spacer />
+
+                            {/*
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                color="rgb(100, 255, 100)"
+                                textShadow="2px 2px black"
+                            >+50</Text>
+                            */}
+                        </HStack>
+
+                        <HStack
+                            w="full"
+                        >
+                            <Image
+                                src="/tools_and_seeds/reward_uncommon.png"
+                                w="40px"
+                                h="40px"
+                            />
+                            
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                textShadow="2px 2px black"
+                                color="white"
+                            >{ reward_uncommon * claim_uncommon }</Text>
+
+                            <Spacer />
+
+                            {/*
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                color="rgb(255, 100, 100)"
+                                textShadow="2px 2px black"
+                            >-50</Text>
+                            */}
+                        </HStack>
+
+                        <HStack
+                            w="full"
+                        >
+                            <Image
+                                src="/tools_and_seeds/reward_rare.png"
+                                w="40px"
+                                h="40px"
+                            />
+                            
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                textShadow="2px 2px black"
+                                color="white"
+                            >{ reward_rare * claim_rare }</Text>
+                        </HStack>
+
+                        <HStack
+                            w="full"
+                        >
+                            <Image
+                                src="/tools_and_seeds/reward_legendary.png"
+                                w="40px"
+                                h="40px"
+                            />
+                            
+                            <Text
+                                fontSize="24px"
+                                fontWeight="600"
+                                textShadow="2px 2px black"
+                                color="white"
+                            >{ reward_legendary * claim_legendary }</Text>
+                        </HStack>
+
+                        <Text
+                            w="full"
+                            pl="24px"
+                            fontSize="24px"
+                            fontWeight="600"
+                            textShadow="2px 2px black"
+                            color="greenyellow"
+                        >{ "= "+((reward_common * claim_common)+(reward_uncommon * claim_uncommon)+(reward_rare * claim_rare)+(reward_legendary * claim_legendary)) }</Text>
+                    </VStack>
 
                     <VStack
                         position="absolute"
@@ -1190,10 +1719,102 @@ const Index = () => {
                         >
                             <Flex
                                 { ...block_style }
+
+                                border={ !select_blocks[0] ? "2px solid" : "4px solid" }
+                                borderColor={ !select_blocks[0] ? block_style.borderColor : "rgb(100, 255, 100)" }
+
+                                bgColor={
+                                    land_blocks[0].status == "ready" ?
+                                        "" :
+                                        land_blocks[0].status == "prepared" || land_blocks[0].status == "watering" ?
+                                            "#d4a06c" :
+                                            land_blocks[0].status == "harvesting" ?
+                                                "#6cc8d4" : ""
+
+                                }
+
+                                onClick={ () =>
+                                    {
+                                        if(is_use_tool) {
+                                            if(temp_asset) {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                if(!new_select_blocks[0]) new_select_blocks[0] = selected_count < temp_asset.blocks ? true : false
+                                                else new_select_blocks[0] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                            else if(temp_seed != "") {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                const seed_count: number =
+                                                    temp_seed == "common" ?
+                                                        seed_common :
+                                                        temp_seed == "uncommon" ?
+                                                            seed_uncommon :
+                                                            temp_seed == "rare" ?
+                                                                seed_rare : seed_legendary
+
+                                                if(!new_select_blocks[0]) new_select_blocks[0] = selected_count < seed_count ? true : false
+                                                else new_select_blocks[0] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                        }
+                                    }
+                                }
                             ></Flex>
 
                             <Flex
                                 { ...block_style }
+
+                                border={ !select_blocks[1] ? "2px solid" : "4px solid" }
+                                borderColor={ !select_blocks[1] ? block_style.borderColor : "rgb(100, 255, 100)" }
+
+                                bgColor={
+                                    land_blocks[1].status == "ready" ?
+                                        "" :
+                                        land_blocks[1].status == "prepared" || land_blocks[1].status == "watering" ?
+                                            "#d4a06c" :
+                                            land_blocks[1].status == "harvesting" ?
+                                                "#6cc8d4" : ""
+
+                                }
+
+                                onClick={ () =>
+                                    {
+                                        if(is_use_tool) {
+                                            if(temp_asset) {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                if(!new_select_blocks[1]) new_select_blocks[1] = selected_count < temp_asset.blocks ? true : false
+                                                else new_select_blocks[1] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                            else if(temp_seed != "") {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                const seed_count: number =
+                                                    temp_seed == "common" ?
+                                                        seed_common :
+                                                        temp_seed == "uncommon" ?
+                                                            seed_uncommon :
+                                                            temp_seed == "rare" ?
+                                                                seed_rare : seed_legendary
+
+                                                if(!new_select_blocks[1]) new_select_blocks[1] = selected_count < seed_count ? true : false
+                                                else new_select_blocks[1] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                        }
+                                    }
+                                }
                             ></Flex>
                         </HStack>
 
@@ -1202,10 +1823,102 @@ const Index = () => {
                         >
                             <Flex
                                 { ...block_style }
+
+                                border={ !select_blocks[2] ? "2px solid" : "4px solid" }
+                                borderColor={ !select_blocks[2] ? block_style.borderColor : "rgb(100, 255, 100)" }
+
+                                bgColor={
+                                    land_blocks[2].status == "ready" ?
+                                        "" :
+                                        land_blocks[2].status == "prepared" || land_blocks[2].status == "watering" ?
+                                            "#d4a06c" :
+                                            land_blocks[2].status == "harvesting" ?
+                                                "#6cc8d4" : ""
+
+                                }
+
+                                onClick={ () =>
+                                    {
+                                        if(is_use_tool) {
+                                            if(temp_asset) {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                if(!new_select_blocks[2]) new_select_blocks[2] = selected_count < temp_asset.blocks ? true : false
+                                                else new_select_blocks[2] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                            else if(temp_seed != "") {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                const seed_count: number =
+                                                    temp_seed == "common" ?
+                                                        seed_common :
+                                                        temp_seed == "uncommon" ?
+                                                            seed_uncommon :
+                                                            temp_seed == "rare" ?
+                                                                seed_rare : seed_legendary
+
+                                                if(!new_select_blocks[2]) new_select_blocks[2] = selected_count < seed_count ? true : false
+                                                else new_select_blocks[2] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                        }
+                                    }
+                                }
                             ></Flex>
 
                             <Flex
                                 { ...block_style }
+
+                                border={ !select_blocks[3] ? "2px solid" : "4px solid" }
+                                borderColor={ !select_blocks[3] ? block_style.borderColor : "rgb(100, 255, 100)" }
+
+                                bgColor={
+                                    land_blocks[3].status == "ready" ?
+                                        "" :
+                                        land_blocks[3].status == "prepared" || land_blocks[3].status == "watering" ?
+                                            "#d4a06c" :
+                                            land_blocks[3].status == "harvesting" ?
+                                                "#6cc8d4" : ""
+
+                                }
+
+                                onClick={ () =>
+                                    {
+                                        if(is_use_tool) {
+                                            if(temp_asset) {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                if(!new_select_blocks[3]) new_select_blocks[3] = selected_count < temp_asset.blocks ? true : false
+                                                else new_select_blocks[3] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                            else if(temp_seed != "") {
+                                                const new_select_blocks: Array<boolean> = [...select_blocks]
+                                                const selected_count: number = new_select_blocks.filter((i) => i).length
+
+                                                const seed_count: number =
+                                                    temp_seed == "common" ?
+                                                        seed_common :
+                                                        temp_seed == "uncommon" ?
+                                                            seed_uncommon :
+                                                            temp_seed == "rare" ?
+                                                                seed_rare : seed_legendary
+
+                                                if(!new_select_blocks[3]) new_select_blocks[3] = selected_count < seed_count ? true : false
+                                                else new_select_blocks[3] = false
+
+                                                setSelectBlocks(new_select_blocks)
+                                            }
+                                        }
+                                    }
+                                }
                             ></Flex>
                         </HStack>
                     </VStack>
@@ -1290,6 +2003,102 @@ const Index = () => {
                             ))
                         }
                     </Flex>
+
+                    <Flex
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="full"
+                        h="340px"
+                        top="0px"
+                        left="0px"
+                        bgColor="rgba(0, 0, 0, 0.6)"
+                    />
+
+                    <Flex
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="full"
+                        h="200px"
+                        bottom="0px"
+                        left="0px"
+                        bgColor="rgba(0, 0, 0, 0.6)"
+                    />
+
+                    <Flex
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="560px"
+                        h="180px"
+                        top="340px"
+                        left="0px"
+                        bgColor="rgba(0, 0, 0, 0.6)"
+                    />
+
+                    <Flex
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="510px"
+                        h="180px"
+                        top="340px"
+                        left="770px"
+                        bgColor="rgba(0, 0, 0, 0.6)"
+                    />
+
+                    <Button
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="210px"
+                        h="40px"
+                        top="295px"
+                        left="560px"
+                        color="white"
+                        bgColor="rgb(10, 200, 10)"
+
+                        onClick={ () =>
+                            {
+                                const result: Array<number> = new Array<number>()
+
+                                for(let i: number = 0; i < 4; i++) {
+                                    if(select_blocks[i]) result.push(i)
+                                }
+
+                                if(!!temp_asset) {
+                                    const status_action: string =
+                                        temp_asset.type == "Hoe" ?
+                                            "preparing" :
+                                            temp_asset.type == "Can" ?
+                                                "watering" :
+                                                temp_asset.type == "Axe" ?
+                                                    "harvesting" : "Seed"
+
+                                    if(status_action != "Seed") use_tool_action(temp_asset.asset_id, result, status_action)
+                                } else { use_seed_action(temp_seed, result) }
+
+                                setUseToolAndSeed(false)
+                                setSelectBlocks([false, false, false, false])
+                                onClose()
+                            }
+                        }
+                    >Accept</Button>
+
+                    <Button
+                        hidden={ !is_use_tool }
+                        position="absolute"
+                        w="210px"
+                        h="40px"
+                        top="525px"
+                        left="560px"
+                        color="white"
+                        bgColor="red"
+
+                        onClick={ () =>
+                            {
+                                setUseToolAndSeed(false)
+                                setTempSeed("")
+                                setSelectBlocks([false, false, false, false])
+                            }
+                        }
+                    >Cancel</Button>
                 </Flex>
 
                 <HStack>
@@ -1325,7 +2134,12 @@ const Index = () => {
 
             <Modal
                 isOpen={ isOpen}
-                onClose={ onClose }
+                onClose={ () =>
+                    {
+                        onClose()
+                        setTempAsset(null)
+                    }
+                }
                 isCentered
             >
                 <ModalOverlay />
@@ -1361,20 +2175,24 @@ const Index = () => {
 
                                     onClick={ () =>
                                         {
+                                            setUseToolAndSeed(true)
                                             onClose()
                                         }
                                     }
                                 >Use tool</Button>
 
                                 <Button
+                                    disabled={ !!temp_asset ? ((temp_asset.max_energy - temp_asset.energy) / 25) == 0 ? true : false : true }
                                     bgColor="green"
 
                                     onClick={ () =>
                                         {
+                                            buy_energy_tool(temp_asset.asset_id, ((temp_asset.max_energy - temp_asset.energy) / 25)+".00000000 KITTEN")
                                             onClose()
+                                            setTempAsset(null)
                                         }
                                     }
-                                >Buy tool energy</Button>
+                                >{ "Buy tool energy "+(!!temp_asset ? ((temp_asset.max_energy - temp_asset.energy) / 25) : "0")+" KITTEN" }</Button>
 
                                 <Button
                                     bgColor="red"
@@ -1383,6 +2201,7 @@ const Index = () => {
                                         {
                                             unstake_nft(temp_asset.asset_id)
                                             onClose()
+                                            setTempAsset(null)
                                         }
                                     }
                                 >Unstake</Button>
