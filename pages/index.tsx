@@ -574,6 +574,7 @@ const Index = () => {
             alignItems="center"
             justifyContent="center"
             userSelect="none"
+            bgColor="#1a202c"
         >
             <VStack
                 w="full"
@@ -608,6 +609,9 @@ const Index = () => {
                             >{ session ? session.auth.actor.toString() : "Please login" }</Text>
 
                             <Button
+                                color="white"
+                                bgColor="#212733"
+
                                 onClick={ () =>
                                     {
                                         if(!session) {
@@ -716,6 +720,7 @@ const Index = () => {
                         spacing="20px"
                         bgColor="rgba(20, 80, 80, 0.7)"
                         rounded="5px"
+                        color="white"
                     >
                         <HStack>
                             <Text
@@ -1221,6 +1226,7 @@ const Index = () => {
                         alignItems="flex-start"
                         alignContent="flex-start"
                         justifyContent="flex-start"
+                        color="white"
                     >
                         <Button
                             position="absolute"
@@ -1289,21 +1295,29 @@ const Index = () => {
                 <HStack>
                     <Button
                         disabled={ !session }
+                        color="white"
+                        bgColor="#212733"
                         onClick={ () => { if(session) { buy_product(hoe_pack, "70.00000000 KITTEN") } } }
                     >Buy hoe pack 70 KITTEN</Button>
 
                     <Button
                         disabled={ !session }
+                        color="white"
+                        bgColor="#212733"
                         onClick={ () => { if(session) { buy_product(watering_can_pack, "70.00000000 KITTEN") } } }
                     >Buy watering can pack 70 KITTEN</Button>
 
                     <Button
                         disabled={ !session }
+                        color="white"
+                        bgColor="#212733"
                         onClick={ () => { if(session) { buy_product(axe_pack, "70.00000000 KITTEN") } } }
                     >Buy axe pack 70 KITTEN</Button>
 
                     <Button
                         disabled={ !session }
+                        color="white"
+                        bgColor="#212733"
                         onClick={ () => { if(session) buy_product(seed_pack, "10.00000000 KITTEN") } }
                     >Buy seed pack 10 KITTEN</Button>
                 </HStack>
@@ -1325,6 +1339,7 @@ const Index = () => {
                             pt="10px"
                             alignItems="center"
                             justifyContent="center"
+                            color="white"
                         >
                             <HStack>
                                 <Text>{ !!temp_asset ? "id: "+temp_asset.asset_id : "" }</Text>
@@ -1338,6 +1353,7 @@ const Index = () => {
                             w="full"
                             alignItems="center"
                             justifyContent="center"
+                            color="white"
                         >
                             <HStack>
                                 <Button
