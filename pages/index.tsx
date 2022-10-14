@@ -963,7 +963,9 @@ const Index = () => {
 
                     <Spacer />
 
-                    <Flex>
+                    <Flex
+                        color="white"
+                    >
                         <VStack
                             spacing="0px"
                             alignItems="end"
