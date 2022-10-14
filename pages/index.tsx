@@ -161,6 +161,9 @@ const Index = () => {
     const [is_use_tool, setUseToolAndSeed] = useState<boolean>(false)
     const [select_blocks, setSelectBlocks] = useState<Array<boolean>>([false, false, false, false])
 
+    const time_now: number = Math.floor(Date.now() / 1000)
+    const [time, setTime] = useState<number>(time_now)
+
     const get_token_data = (session: LinkSession) => {
         axios({
             method: "post",
@@ -302,6 +305,8 @@ const Index = () => {
                 new_land_blocks[3].rarity       = blocks[3].rarity
                 new_land_blocks[3].current_time = blocks[3].current_time
                 new_land_blocks[3].cooldown_hr  = blocks[3].cooldown_hr
+
+                setLandBlocks(new_land_blocks)
             } else {
                 console.log("not found land default from account")
             }
@@ -867,6 +872,11 @@ const Index = () => {
             }
 
             setSession(session)
+
+            setInterval(() => {
+                const time_now: number = Math.floor(Date.now() / 1000)
+                setTime(time_now)
+            }, 1000)
         })
     }, [])
 
@@ -1732,9 +1742,20 @@ const Index = () => {
                                         land_blocks[0].status == "prepared" || land_blocks[0].status == "watering" ?
                                             "#d4a06c" :
                                             land_blocks[0].status == "harvesting" ?
-                                                "#6cc8d4" : ""
+                                                time - land_blocks[0].current_time >= land_blocks[0].cooldown_hr ?
+                                                    "#d0de52" : "#6cc8d4" : ""
 
                                 }
+
+                                bgImage={
+                                    land_blocks[0].rarity == "" ?
+                                        "" :
+                                        "/earn_step/"+
+                                        (time - land_blocks[0].current_time >= land_blocks[0].cooldown_hr && land_blocks[0].status == "harvesting" ? "g_" : "s_")+
+                                        (land_blocks[0].rarity)+".png"
+                                }
+
+                                bgSize="contain"
 
                                 onClick={ () =>
                                     {
@@ -1779,12 +1800,23 @@ const Index = () => {
                                 bgColor={
                                     land_blocks[1].status == "ready" ?
                                         "" :
-                                        land_blocks[1].status == "prepared" || land_blocks[1].status == "watering" ?
+                                        land_blocks[1].status == "prepared" || land_blocks[0].status == "watering" ?
                                             "#d4a06c" :
                                             land_blocks[1].status == "harvesting" ?
-                                                "#6cc8d4" : ""
+                                                time - land_blocks[1].current_time >= land_blocks[1].cooldown_hr ?
+                                                    "#d0de52" : "#6cc8d4" : ""
 
                                 }
+
+                                bgImage={
+                                    land_blocks[1].rarity == "" ?
+                                        "" :
+                                        "/earn_step/"+
+                                        (time - land_blocks[1].current_time >= land_blocks[1].cooldown_hr && land_blocks[1].status == "harvesting" ? "g_" : "s_")+
+                                        (land_blocks[1].rarity)+".png"
+                                }
+
+                                bgSize="contain"
 
                                 onClick={ () =>
                                     {
@@ -1836,9 +1868,20 @@ const Index = () => {
                                         land_blocks[2].status == "prepared" || land_blocks[2].status == "watering" ?
                                             "#d4a06c" :
                                             land_blocks[2].status == "harvesting" ?
-                                                "#6cc8d4" : ""
+                                                time - land_blocks[2].current_time >= land_blocks[2].cooldown_hr ?
+                                                    "#d0de52" : "#6cc8d4" : ""
 
                                 }
+
+                                bgImage={
+                                    land_blocks[2].rarity == "" ?
+                                        "" :
+                                        "/earn_step/"+
+                                        (time - land_blocks[2].current_time >= land_blocks[2].cooldown_hr && land_blocks[2].status == "harvesting" ? "g_" : "s_")+
+                                        (land_blocks[2].rarity)+".png"
+                                }
+
+                                bgSize="contain"
 
                                 onClick={ () =>
                                     {
@@ -1886,9 +1929,20 @@ const Index = () => {
                                         land_blocks[3].status == "prepared" || land_blocks[3].status == "watering" ?
                                             "#d4a06c" :
                                             land_blocks[3].status == "harvesting" ?
-                                                "#6cc8d4" : ""
+                                                time - land_blocks[3].current_time >= land_blocks[3].cooldown_hr ?
+                                                    "#d0de52" : "#6cc8d4" : ""
 
                                 }
+
+                                bgImage={
+                                    land_blocks[3].rarity == "" ?
+                                        "" :
+                                        "/earn_step/"+
+                                        (time - land_blocks[3].current_time >= land_blocks[3].cooldown_hr && land_blocks[3].status == "harvesting" ? "g_" : "s_")+
+                                        (land_blocks[3].rarity)+".png"
+                                }
+
+                                bgSize="contain"
 
                                 onClick={ () =>
                                     {
