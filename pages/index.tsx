@@ -383,7 +383,7 @@ const Index = () => {
                         const hoe: Asset = {
                             asset_id: v.asset_id,
                             blocks: v.blocks,
-                            current_time: 0,
+                            current_time: v.current_time,
                             cooldown_hr: v.cooldown_hr,
                             energy: v.energy,
                             max_energy: v.max_energy,
@@ -400,7 +400,7 @@ const Index = () => {
                         const watering_can: Asset = {
                             asset_id: v.asset_id,
                             blocks: v.blocks,
-                            current_time: 0,
+                            current_time: v.current_time,
                             cooldown_hr: v.cooldown_hr,
                             energy: v.energy,
                             max_energy: v.max_energy,
@@ -417,7 +417,7 @@ const Index = () => {
                         const axe: Asset = {
                             asset_id: v.asset_id,
                             blocks: v.blocks,
-                            current_time: 0,
+                            current_time: v.current_time,
                             cooldown_hr: v.cooldown_hr,
                             energy: v.energy,
                             max_energy: v.max_energy,
@@ -1447,6 +1447,16 @@ const Index = () => {
                                     }
                                 >
                                     <Flex
+                                        hidden={ hoe_tools.length > 0 ? (time - hoe_tools[0].current_time) >= hoe_tools[0].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (hoe_tools.length > 0 ? (100 - (time - hoe_tools[0].current_time) / hoe_tools[0].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
+                                    <Flex
                                         position="absolute"
                                         w="full"
                                         h="6px"
@@ -1495,6 +1505,16 @@ const Index = () => {
                                         }
                                     }
                                 >
+                                    <Flex
+                                        hidden={ hoe_tools.length > 1 ? (time - hoe_tools[1].current_time) >= hoe_tools[1].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (hoe_tools.length > 0 ? (100 - (time - hoe_tools[1].current_time) / hoe_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
                                     <Flex
                                         position="absolute"
                                         w="full"
@@ -1549,6 +1569,16 @@ const Index = () => {
                                     }
                                 >
                                     <Flex
+                                        hidden={ watering_can_tools.length > 0 ? (time - watering_can_tools[0].current_time) >= watering_can_tools[0].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (watering_can_tools.length > 0 ? (100 - (time - watering_can_tools[0].current_time) / watering_can_tools[0].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
+                                    <Flex
                                         position="absolute"
                                         w="full"
                                         h="6px"
@@ -1597,6 +1627,16 @@ const Index = () => {
                                         }
                                     }
                                 >
+                                    <Flex
+                                        hidden={ watering_can_tools.length > 0 ? (time - watering_can_tools[1].current_time) >= watering_can_tools[1].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (watering_can_tools.length > 0 ? (100 - (time - watering_can_tools[1].current_time) / watering_can_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
                                     <Flex
                                         position="absolute"
                                         w="full"
@@ -1651,6 +1691,16 @@ const Index = () => {
                                     }
                                 >
                                     <Flex
+                                        hidden={ axe_tools.length > 0 ? (time - axe_tools[0].current_time) >= axe_tools[0].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (axe_tools.length > 0 ? (100 - (time - axe_tools[0].current_time) / axe_tools[0].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
+                                    <Flex
                                         position="absolute"
                                         w="full"
                                         h="6px"
@@ -1699,6 +1749,16 @@ const Index = () => {
                                         }
                                     }
                                 >
+                                    <Flex
+                                        hidden={ axe_tools.length > 0 ? (time - axe_tools[1].current_time) >= axe_tools[1].cooldown_hr ? true : false : true }
+                                        position="absolute"
+                                        w="full"
+                                        h={ (axe_tools.length > 0 ? (100 - (time - axe_tools[1].current_time) / axe_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        bottom="0px"
+                                        left="0px"
+                                        bgColor="rgba(0, 0, 0, 0.3)"
+                                    />
+
                                     <Flex
                                         position="absolute"
                                         w="full"
@@ -1789,7 +1849,17 @@ const Index = () => {
                                         }
                                     }
                                 }
-                            ></Flex>
+                            >
+                                <Flex
+                                    hidden={ land_blocks[0].status != "harvesting" }
+                                    position="absolute"
+                                    w="full"
+                                    h={ (100 - (time - land_blocks[0].current_time) / land_blocks[0].cooldown_hr * 100)+"%" }
+                                    bottom="0px"
+                                    left="0px"
+                                    bgColor="rgba(0, 0, 0, 0.3)"
+                                />
+                            </Flex>
 
                             <Flex
                                 { ...block_style }
@@ -1850,7 +1920,17 @@ const Index = () => {
                                         }
                                     }
                                 }
-                            ></Flex>
+                            >
+                                <Flex
+                                    hidden={ land_blocks[1].status != "harvesting" }
+                                    position="absolute"
+                                    w="full"
+                                    h={ (100 - (time - land_blocks[1].current_time) / land_blocks[1].cooldown_hr * 100)+"%" }
+                                    bottom="0px"
+                                    left="0px"
+                                    bgColor="rgba(0, 0, 0, 0.3)"
+                                />
+                            </Flex>
                         </HStack>
 
                         <HStack
@@ -1915,7 +1995,17 @@ const Index = () => {
                                         }
                                     }
                                 }
-                            ></Flex>
+                            >
+                                <Flex
+                                    hidden={ land_blocks[2].status != "harvesting" }
+                                    position="absolute"
+                                    w="full"
+                                    h={ (100 - (time - land_blocks[2].current_time) / land_blocks[2].cooldown_hr * 100)+"%" }
+                                    bottom="0px"
+                                    left="0px"
+                                    bgColor="rgba(0, 0, 0, 0.3)"
+                                />
+                            </Flex>
 
                             <Flex
                                 { ...block_style }
@@ -1976,7 +2066,17 @@ const Index = () => {
                                         }
                                     }
                                 }
-                            ></Flex>
+                            >
+                                <Flex
+                                    hidden={ land_blocks[3].status != "harvesting" }
+                                    position="absolute"
+                                    w="full"
+                                    h={ (100 - (time - land_blocks[3].current_time) / land_blocks[3].cooldown_hr * 100)+"%" }
+                                    bottom="0px"
+                                    left="0px"
+                                    bgColor="rgba(0, 0, 0, 0.3)"
+                                />
+                            </Flex>
                         </HStack>
                     </VStack>
 
@@ -2186,6 +2286,13 @@ const Index = () => {
                         bgColor="#212733"
                         onClick={ () => { if(session) buy_product(seed_pack, "10.00000000 KITTEN") } }
                     >Buy seed pack 10 KITTEN</Button>
+
+                    <Button
+                        disabled={ !session }
+                        color="white"
+                        bgColor="#212733"
+                        onClick={ () => { if(session) buy_product(seed_pack, "50.00000000 KITTEN") } }
+                    >Buy seed pack 5 Packs</Button>
                 </HStack>
             </VStack>
 
