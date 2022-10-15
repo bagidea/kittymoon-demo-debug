@@ -1509,7 +1509,7 @@ const Index = () => {
                                         hidden={ hoe_tools.length > 1 ? (time - hoe_tools[1].current_time) >= hoe_tools[1].cooldown_hr ? true : false : true }
                                         position="absolute"
                                         w="full"
-                                        h={ (hoe_tools.length > 0 ? (100 - (time - hoe_tools[1].current_time) / hoe_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        h={ (hoe_tools.length > 1 ? (100 - (time - hoe_tools[1].current_time) / hoe_tools[1].cooldown_hr * 100) : "0")+"%" }
                                         bottom="0px"
                                         left="0px"
                                         bgColor="rgba(0, 0, 0, 0.3)"
@@ -1628,10 +1628,10 @@ const Index = () => {
                                     }
                                 >
                                     <Flex
-                                        hidden={ watering_can_tools.length > 0 ? (time - watering_can_tools[1].current_time) >= watering_can_tools[1].cooldown_hr ? true : false : true }
+                                        hidden={ watering_can_tools.length > 1 ? (time - watering_can_tools[1].current_time) >= watering_can_tools[1].cooldown_hr ? true : false : true }
                                         position="absolute"
                                         w="full"
-                                        h={ (watering_can_tools.length > 0 ? (100 - (time - watering_can_tools[1].current_time) / watering_can_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        h={ (watering_can_tools.length > 1 ? (100 - (time - watering_can_tools[1].current_time) / watering_can_tools[1].cooldown_hr * 100) : "0")+"%" }
                                         bottom="0px"
                                         left="0px"
                                         bgColor="rgba(0, 0, 0, 0.3)"
@@ -1750,10 +1750,10 @@ const Index = () => {
                                     }
                                 >
                                     <Flex
-                                        hidden={ axe_tools.length > 0 ? (time - axe_tools[1].current_time) >= axe_tools[1].cooldown_hr ? true : false : true }
+                                        hidden={ axe_tools.length > 1 ? (time - axe_tools[1].current_time) >= axe_tools[1].cooldown_hr ? true : false : true }
                                         position="absolute"
                                         w="full"
-                                        h={ (axe_tools.length > 0 ? (100 - (time - axe_tools[1].current_time) / axe_tools[1].cooldown_hr * 100) : "0")+"%" }
+                                        h={ (axe_tools.length > 1 ? (100 - (time - axe_tools[1].current_time) / axe_tools[1].cooldown_hr * 100) : "0")+"%" }
                                         bottom="0px"
                                         left="0px"
                                         bgColor="rgba(0, 0, 0, 0.3)"
