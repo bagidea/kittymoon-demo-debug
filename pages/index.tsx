@@ -2201,8 +2201,19 @@ const Index = () => {
                         bgColor="rgba(0, 0, 0, 0.6)"
                     />
 
+                    <Image
+                        hidden={ !is_use_tool || temp_seed == "" }
+                        position="absolute"
+                        top="160px"
+                        left="620px"
+                        src={ "/tools_and_seeds/seed_"+temp_seed+".png" }
+                        w="100px"
+                        h="100px"
+                    />
+
                     <Button
                         hidden={ !is_use_tool }
+                        disabled={ select_blocks.filter((v: boolean) => v).length == 0 }
                         position="absolute"
                         w="210px"
                         h="40px"
